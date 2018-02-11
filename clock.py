@@ -1,3 +1,6 @@
+import django
+django.setup()
+
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from cherrytea_app.jobs.fulfill_plans import run as fulfill_plans

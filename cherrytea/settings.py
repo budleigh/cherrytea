@@ -173,6 +173,10 @@ LOGGING = {
         'testlogger': {
             'handlers': ['console'],
             'level': 'INFO',
+        },
+        'cherrytea': {
+            'handlers': ['console'],
+            'level': 'INFO',
         }
     }
 }

@@ -112,8 +112,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'cherrytea_app.User'
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

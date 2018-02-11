@@ -1,11 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 
 from cherrytea_app.util import day_map_reverse
-
-
-class User(AbstractUser):
-    timezone = models.CharField(max_length=255, blank=True, null=True)
 
 
 class CharityGroup(models.Model):

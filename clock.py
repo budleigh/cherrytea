@@ -1,3 +1,6 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'cherrytea.settings'
+
 import django
 django.setup()
 

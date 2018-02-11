@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% for charity in group.charities.all %}
+        {{ charity.name }}<br/>
+    {% endfor %}
+
+    <a href="/group/{{ group.id }}/plan">Create a donation plan for this charity group</a>
+{% endblock %}

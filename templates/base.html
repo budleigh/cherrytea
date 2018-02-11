@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}cherrytea{% endblock %}</title>
+    <script src="/static/third_party/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+    {% if user.is_authenticated %}
+        <a href="/home/">Home</a> |
+        <a href="/signout/">Sign out</a> |
+    {% endif %}
+        <a href="/browse/">Browse Charities</a><br /><br />
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    hello {{ user }}!
+
+    {% if user.plans.all %}
+        <h3>Current plans</h3>
+        <ul>
+            {% for plan in user.plans.all %}
+                <li><a href="/user/plans/{{ plan.id }}/">{{ plan.group.name }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

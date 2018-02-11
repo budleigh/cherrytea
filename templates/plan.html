@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ group.name }} donation plan</h1>
+    <h3>Charities:<br/>
+    {% for charity in group.charities.all %}
+        - {{ charity.name }}<br/>
+    {% endfor %}</h3>
+    <form action="." method="POST">
+        {% csrf_token %}
+        {{ plan_form }}
+        <input type="submit" value="Create plan"/>
+    </form>
+{% endblock %}

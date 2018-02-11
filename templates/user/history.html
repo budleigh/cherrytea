@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <ul>
+        {% for donation in user.donations.all %}
+            <li>{{ donation.date }}: ${{ donation.amount }} donated to {{ donation.group.name }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

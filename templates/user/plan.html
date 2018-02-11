@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Donation plan for {{ plan.group.name }}</h2>
+    Amount: ${{ plan.amount }}<br />
+    Occurs every {{ plan.human_day }}<br />
+
+    <a href="/user/plans/{{ plan.id }}/cancel">Cancel plan</a>
+{% endblock %}

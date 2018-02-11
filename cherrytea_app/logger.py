@@ -8,7 +8,7 @@ class Logger(object):
     def __init__(self):
         self._logger = logging.getLogger(__name__)
 
-    def _log(self, level, message, models):
+    def _log(self, level, message, *models):
         msg = {
             'message': message,
             'data': json.loads(serializers.serialize('json', models))  # this is retarded sam, jesus christ todo
@@ -16,13 +16,13 @@ class Logger(object):
         self._logger.log(level, json.dumps(msg))
 
     def info(self, message, *models):
-        self._log('INFO', message, *models)
+        self._log(logging.INFO, message, *models)
 
     def error(self, message, *models):
-        self._log('ERROR', message, *models)
+        self._log(logging.ERROR, message, *models)
 
     def warning(self, message, *models):
-        self._log('WARNING', message, *models)
+        self._log(logging.WARN, message, *models)
 
     def debug(self, message, *models):
-        self._log('DEBUG', message, *models)
+        self._log(logging.DEBUG, message, *models)

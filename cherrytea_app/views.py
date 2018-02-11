@@ -148,7 +148,7 @@ def sign_in(request, email, password):
         logger.info('user logged in', authed_user)
         return redirect('home')
     else:
-        logger.warning('user failed to logged in', email)
+        logger.warning('user failed to logged in: %s' % email)
         messages.add_message(request, messages.ERROR, 'Login failed.')
         return redirect('index')
 

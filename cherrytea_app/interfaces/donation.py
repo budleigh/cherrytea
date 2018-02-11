@@ -1,4 +1,5 @@
 import datetime
+from django.db import transaction
 
 import stripe
 
@@ -11,6 +12,7 @@ stripe.api_key = ''
 class DonationInterface(BaseInterface):
     model = Donation
 
+    @transaction.atomic
     def donate(self, plan):
         # get the money here
         stripe.Charge.create(

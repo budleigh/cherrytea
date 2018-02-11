@@ -1,6 +1,7 @@
 import stripe
+from django.db import transaction
 
-from cherrytea_app.interfaces.base import BaseInterface, AccessError
+from cherrytea_app.interfaces.base import BaseInterface
 from cherrytea_app.models import User, UserOptions
 
 stripe.api_key = ''
@@ -16,6 +17,7 @@ class UserInterface(BaseInterface):
         user.options.stripe_id = customer.id
         user.options.save()
 
+    @transaction.atomic
     def create_user(self, email, password, timezone='US/Pacific'):
         user = User.objects.create_user(username=email, email=email, password=password)
         UserOptions.objects.create(user=user, timezone=timezone)

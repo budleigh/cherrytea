@@ -4,6 +4,11 @@ from django.contrib.auth.models import User
 from cherrytea_app.util import day_map_reverse
 
 
+class UserOptions(models.Model):
+    user = models.OneToOneField(User, related_name='options', on_delete=models.CASCADE)
+    timezone = models.CharField(max_length=255, default='America/New_York')
+
+
 class CharityGroup(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     charities = models.ManyToManyField('Charity')

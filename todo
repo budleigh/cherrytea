@@ -1,4 +1,2 @@
-- dump all database-oriented behavior into the interfaces API
-- views now use interfaces instead of models directly
 - add good logging
-- introduce the donations job
+- allow user to change/set timezone

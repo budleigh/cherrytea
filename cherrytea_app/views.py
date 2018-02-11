@@ -8,6 +8,9 @@ from django.contrib.auth.decorators import login_required
 from cherrytea_app.forms import *
 from cherrytea_app.models import User, CharityGroup, DonationPlan
 from cherrytea_app.util import day_map
+from cherrytea_app.logger import Logger
+
+logger = Logger()
 
 
 @require_http_methods(['GET'])
@@ -68,6 +71,8 @@ def create_plan(request, id=None):
             return redirect('plan', id=plan.id)
 
     if request.method == 'POST':
+        logger.info('creating plan for user', request.user)
+
         form = PlanForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
@@ -88,6 +93,7 @@ def create_plan(request, id=None):
                 messages.INFO,
                 'Thanks so much! Your plan will start on the following %s.' % data['day_of_week'],
             )
+            logger.info('created plan for user', request.user, new_plan)
             return redirect('plan', id=new_plan.id)
 
     else:
@@ -107,6 +113,7 @@ def cancel_plan(request, id=None):
         messages.add_message(request, messages.WARNING, 'That\'s not one of your donation plans!')
         return redirect('home')
 
+    logger.info('cancelling plan for user', request.user, donation_plan)
     donation_plan.delete()
     messages.add_message(
         request,
@@ -125,9 +132,11 @@ def sign_up(request, email, password):
         )
         authed_user = authenticate(username=email, password=password)
         login(request, authed_user)
+        logger.info('user created', authed_user)
         return redirect('home')
 
     except IntegrityError:
+        logger.warning('user clash: %s' % email)
         messages.add_message(request, messages.ERROR, 'Whoops! Looks like that user already exists.')
         return redirect('index')
 
@@ -136,13 +145,16 @@ def sign_in(request, email, password):
     authed_user = authenticate(username=email, password=password)
     if authed_user:
         login(request, authed_user)
+        logger.info('user logged in', authed_user)
         return redirect('home')
     else:
+        logger.warning('user failed to logged in', email)
         messages.add_message(request, messages.ERROR, 'Login failed.')
         return redirect('index')
 
 
 def sign_out(request):
+    logger.info('user logged out', request.user)
     logout(request)
     return redirect('index')
 
@@ -161,6 +173,7 @@ def auth(request):
             return sign_in(request, email, password)
 
     else:
-        return messages.add_message(
+        messages.add_message(
             request, messages.ERROR, 'Whoops, looks like something wasn\'t quite right there.'
         )
+        return redirect('index')

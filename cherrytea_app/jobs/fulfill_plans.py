@@ -5,6 +5,7 @@ import stripe
 
 from cherrytea_app.models import DonationPlan, Donation
 from cherrytea_app.logger import Logger
+from cherrytea_app.interfaces import DonationInterface
 
 stripe.api_key = 'sk_test_3PFwtSlitXPqUhUmFXWi7sbR'
 
@@ -17,6 +18,7 @@ def run():
     # - the last 72 hours.
     today = datetime.datetime.now()
     logger = Logger()
+    donation_interface = DonationInterface()
 
     plans = DonationPlan.objects.all()  # todo filter properly or parallelize
     for plan in plans:
@@ -24,33 +26,9 @@ def run():
         localized = timezone.localize(today)
         if localized.weekday() == today.weekday() and plan.last_fulfilled < (today - datetime.timedelta(hours=72)):
             try:
-                donate(plan)
+                donation_interface.donate(plan)
             except BaseException as e:
                 logger.error('Failed to fulfill donation plan: %s' % e, plan)
-
-
-def donate(plan):
-    # get the money here
-    stripe.Charge.create(
-        amount=plan.amount,
-        currency="usd",
-        description="Donation from %s for %s on %s (UTC)" % (
-            plan.user.email,
-            plan.group.name,
-            datetime.date.today(),
-        )
-    )
-
-    Donation.objects.create(
-        group=plan.group,
-        amount=plan.amount,
-        user=plan.user,
-        date=datetime.date.today(),
-    )
-
-    plan.last_fulfilled = datetime.datetime.now()
-    plan.total_donated += plan.amount
-    plan.save()
 
 
 if __name__ == '__main__':

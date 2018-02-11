@@ -1,6 +1,35 @@
+import datetime
+
+import stripe
+
 from cherrytea_app.interfaces.base import BaseInterface
 from cherrytea_app.models import Donation
 
+stripe.api_key = ''
 
-class PlanInterface(BaseInterface):
+
+class DonationInterface(BaseInterface):
     model = Donation
+
+    def donate(self, plan):
+        # get the money here
+        stripe.Charge.create(
+            amount=plan.amount,
+            currency="usd",
+            description="Donation from %s for %s on %s (UTC)" % (
+                plan.user.email,
+                plan.group.name,
+                datetime.date.today(),
+            )
+        )
+
+        Donation.objects.create(
+            group=plan.group,
+            amount=plan.amount,
+            user=plan.user,
+            date=datetime.date.today(),
+        )
+
+        plan.last_fulfilled = datetime.datetime.now()
+        plan.total_donated += plan.amount
+        plan.save()

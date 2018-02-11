@@ -25,9 +25,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '_)7n1mf1cae^5q@#dz$1v@zyg3-lgq8n@7gnhvq50c_1)$=bbo'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if not os.environ.get('CHERRYTEA_PROD'):
+    DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

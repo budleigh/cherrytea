@@ -1,9 +1,12 @@
 import datetime
 
 import pytz
+import stripe
 
 from cherrytea_app.models import DonationPlan, Donation
 from cherrytea_app.logger import Logger
+
+stripe.api_key = 'sk_test_3PFwtSlitXPqUhUmFXWi7sbR'
 
 
 def run():
@@ -27,6 +30,17 @@ def run():
 
 
 def donate(plan):
+    # get the money here
+    stripe.Charge.create(
+        amount=plan.amount,
+        currency="usd",
+        description="Donation from %s for %s on %s (UTC)" % (
+            plan.user.email,
+            plan.group.name,
+            datetime.date.today(),
+        )
+    )
+
     Donation.objects.create(
         group=plan.group,
         amount=plan.amount,

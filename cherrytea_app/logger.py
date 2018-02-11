@@ -5,6 +5,10 @@ from django.core import serializers
 
 
 class Logger(object):
+    """
+    Wraps normal logger with serialization for django models.
+    """
+
     def __init__(self):
         self._logger = logging.getLogger('cherrytea')
 

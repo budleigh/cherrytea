@@ -4,13 +4,18 @@ from django.views.decorators.http import require_http_methods
 from django.db import IntegrityError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+import stripe
 
 from cherrytea_app.forms import *
-from cherrytea_app.models import User, CharityGroup, DonationPlan
-from cherrytea_app.util import day_map
 from cherrytea_app.logger import Logger
+from cherrytea_app.interfaces import *
 
 logger = Logger()
+stripe.api_key = 'sk_test_3PFwtSlitXPqUhUmFXWi7sbR'
+
+user_interface = UserInterface()
+plan_interface = PlanInterface()
+group_interface = GroupInterface()
 
 
 @require_http_methods(['GET'])
@@ -19,7 +24,8 @@ def index(request):
         return redirect('home')
 
     return render(request, 'index.html', {
-        'auth_form': AuthForm(),
+        'signin_form': SigninForm(),
+        'signup_form': SignupForm(),
     })
 
 
@@ -32,21 +38,21 @@ def home(request):
 @require_http_methods(['GET'])
 def browse(request):
     return render(request, 'browse.html', {
-        'charitygroups': CharityGroup.objects.all()
+        'charitygroups': group_interface.all()
     })
 
 
 @require_http_methods(['GET'])
 def group(request, id=None):
     return render(request, 'group.html', {
-        'group': CharityGroup.objects.get(pk=id)
+        'group': group_interface.get(id)
     })
 
 
 @login_required
 @require_http_methods(['GET', 'POST'])
 def plan(request, id=None):
-    donation_plan = DonationPlan.objects.get(pk=id)
+    donation_plan = plan_interface.get(id)
     if donation_plan.user != request.user:
         messages.add_message(request, messages.WARNING, 'That\'s not one of your donation plans!')
         return redirect('home')
@@ -59,16 +65,7 @@ def plan(request, id=None):
 @login_required
 @require_http_methods(['GET', 'POST'])
 def create_plan(request, id=None):
-    charity_group = CharityGroup.objects.get(pk=id)
-
-    for plan in request.user.plans.all():
-        if plan.group == charity_group:
-            messages.add_message(
-                request,
-                messages.INFO,
-                'Whoops, looks like you already have a donation plan for that group!',
-            )
-            return redirect('plan', id=plan.id)
+    charity_group = group_interface.get(id)
 
     if request.method == 'POST':
         logger.info('creating plan for user', request.user)
@@ -82,12 +79,16 @@ def create_plan(request, id=None):
                 messages.add_message(request, messages.WARNING, 'There is a $5 minimum for donation plans.')
                 return redirect('create_plan', id=id)
 
-            new_plan = DonationPlan.objects.create(
-                group=charity_group,
-                user=request.user,
-                amount=amount,
-                day=day_map[data['day_of_week']],
-            )
+            try:
+                new_plan = plan_interface.create(request.user, charity_group, amount, data['day_of_week'])
+            except IntegrityError:
+                messages.add_message(
+                    request,
+                    messages.WARNING,
+                    'Whoops! Looks like you already have a plan for that charity group.',
+                )
+                return redirect('home')
+
             messages.add_message(
                 request,
                 messages.INFO,
@@ -106,15 +107,12 @@ def create_plan(request, id=None):
 @login_required
 @require_http_methods(['GET'])
 def cancel_plan(request, id=None):
-    donation_plan = DonationPlan.objects.get(pk=id)
-
-    # this shouldnt be possible but yeah
-    if donation_plan.user != request.user:
-        messages.add_message(request, messages.WARNING, 'That\'s not one of your donation plans!')
+    try:
+        plan_interface.cancel(id, request.user)
+    except AccessError:
+        messages.add_message(request, messages.WARNING, 'Whoops, that plan isn\'t yours!')
         return redirect('home')
 
-    logger.info('cancelling plan for user', request.user, donation_plan)
-    donation_plan.delete()
     messages.add_message(
         request,
         messages.INFO,
@@ -123,33 +121,53 @@ def cancel_plan(request, id=None):
     return redirect('home')
 
 
-def sign_up(request, email, password):
-    try:
-        User.objects.create_user(
-            username=email,
-            email=email,
-            password=password,
-        )
-        authed_user = authenticate(username=email, password=password)
-        login(request, authed_user)
-        logger.info('user created', authed_user)
-        return redirect('home')
+@require_http_methods(['POST'])
+def sign_up(request):
+    form = SignupForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        email = data['email']
+        password = data['password']
+        timezone = data['timezone']
 
-    except IntegrityError:
-        logger.warning('user clash: %s' % email)
-        messages.add_message(request, messages.ERROR, 'Whoops! Looks like that user already exists.')
+        try:
+            user_interface.create_user(email, password, timezone)
+
+            authed_user = authenticate(username=email, password=password)
+            login(request, authed_user)
+            logger.info('user created', authed_user)
+            return redirect('home')
+
+        except IntegrityError:
+            logger.warning('user clash: %s' % email)
+            messages.add_message(request, messages.ERROR, 'Whoops! Looks like that user already exists.')
+            return redirect('index')
+
+    else:
+        messages.add_message(request, messages.ERROR, 'Whoops, something wasn\'t quite right there.')
         return redirect('index')
 
 
-def sign_in(request, email, password):
-    authed_user = authenticate(username=email, password=password)
-    if authed_user:
-        login(request, authed_user)
-        logger.info('user logged in', authed_user)
-        return redirect('home')
+@require_http_methods(['POST'])
+def sign_in(request):
+    form = SigninForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        email = data['email']
+        password = data['password']
+
+        authed_user = authenticate(username=email, password=password)
+        if authed_user:
+            login(request, authed_user)
+            logger.info('user logged in', authed_user)
+            return redirect('home')
+        else:
+            logger.warning('user failed to logged in: %s' % email)
+            messages.add_message(request, messages.ERROR, 'Login failed.')
+            return redirect('index')
+
     else:
-        logger.warning('user failed to logged in: %s' % email)
-        messages.add_message(request, messages.ERROR, 'Login failed.')
+        messages.add_message(request, messages.ERROR, 'Whoops, something wasn\'t quite right there.')
         return redirect('index')
 
 
@@ -157,23 +175,3 @@ def sign_out(request):
     logger.info('user logged out', request.user)
     logout(request)
     return redirect('index')
-
-
-@require_http_methods(['POST'])
-def auth(request):
-    form = AuthForm(request.POST)
-    if form.is_valid():
-        data = form.cleaned_data
-        email = data['email']
-        password = data['password']
-
-        if data['type'] == 'UP':
-            return sign_up(request, email, password)
-        if data['type'] == 'IN':
-            return sign_in(request, email, password)
-
-    else:
-        messages.add_message(
-            request, messages.ERROR, 'Whoops, looks like something wasn\'t quite right there.'
-        )
-        return redirect('index')

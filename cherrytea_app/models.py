@@ -1,12 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
+import stripe
 
 from cherrytea_app.util import day_map_reverse
+
+stripe.api_key = 'sk_test_3PFwtSlitXPqUhUmFXWi7sbR'
 
 
 class UserOptions(models.Model):
     user = models.OneToOneField(User, related_name='options', on_delete=models.CASCADE)
     timezone = models.CharField(max_length=255, default='America/New_York')
+    stripe_id = models.CharField(max_length=255, db_index=True)
+
+    def stripe_user(self):
+        return stripe.Customer.retrieve(self.stripe_id)
 
 
 class CharityGroup(models.Model):
@@ -31,6 +38,7 @@ class Donation(models.Model):
     amount = models.PositiveIntegerField()
     user = models.ForeignKey(User, related_name='donations', on_delete=models.DO_NOTHING)
     date = models.DateField(auto_now_add=True, db_index=True)
+    complete = models.BooleanField(default=False)  # once we've actually sent it to the charities
 
 
 class DonationPlan(models.Model):

@@ -1,17 +1,16 @@
 from django import forms
+import pytz
 
 
-class AuthForm(forms.Form):
+class SigninForm(forms.Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput())
-    type = forms.ChoiceField(widget=forms.RadioSelect(), choices=(
-        ('IN', 'Sign in'),
-        ('UP', 'Sign up'),
-    ))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['type'].label = ''
+
+class SignupForm(forms.Form):
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput())
+    timezone = forms.ChoiceField(widget=forms.Select(), choices=((x, x) for x in pytz.all_timezones))
 
 
 class PlanForm(forms.Form):
@@ -25,6 +24,9 @@ class PlanForm(forms.Form):
         ('Sunday', 'Sunday'),
     ))
     amount = forms.CharField(widget=forms.NumberInput())
+    card = forms.CharField(widget=forms.TextInput(attrs={
+        'placeholder': 'Credit Card Number',
+    }), required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

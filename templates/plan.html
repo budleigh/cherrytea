@@ -8,7 +8,13 @@
     {% endfor %}</h3>
     <form action="." method="POST">
         {% csrf_token %}
-        {{ plan_form }}
+        {{ plan_form.day_of_week.label }}
+        {{ plan_form.day_of_week }}
+        {{ plan_form.amount.label }}
+        {{ plan_form.amount }}
+        {% if not user.stripe_user.cards %}
+            {{ plan_form.card }}
+        {% endif %}
         <input type="submit" value="Create plan"/>
     </form>
 {% endblock %}

@@ -27,7 +27,8 @@ urlpatterns = [
     path('user/plans/<int:id>/', plan, name='plan'),
 
     path('user/plans/<int:id>/cancel/', cancel_plan),
-    path('auth/', auth),
+    path('signin/', sign_in,),
+    path('signup/', sign_up),
     path('signout/', sign_out),
 
     path('admin/', admin.site.urls),

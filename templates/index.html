@@ -14,10 +14,16 @@
         </ul>
     {% endif %}
 
-    <form action="/auth/" method="POST">
+    <form action="/signin/" method="POST">
         {% csrf_token %}
-        {{ auth_form }}
-        <input type="submit" value="Go"/>
+        {{ signin_form }}
+        <input type="submit" value="Sign in"/>
+    </form>
+
+    <form action="/signup/" method="POST">
+        {% csrf_token %}
+        {{ signup_form }}
+        <input type="submit" value="Sign up"/>
     </form>
 </body>
 </html>

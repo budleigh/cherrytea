@@ -116,7 +116,7 @@ def cancel_plan(request, id=None):
     messages.add_message(
         request,
         messages.INFO,
-        'We\'ve cancelled your donation plan for %s. Thanks for your contributions!' % donation_plan.group.name,
+        'We\'ve cancelled your donation plan. Thanks for your contributions!',
     )
     return redirect('home')
 

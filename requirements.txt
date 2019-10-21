@@ -14,4 +14,4 @@ six==1.11.0
 static3==0.7.0
 stripe==1.77.2
 tzlocal==1.5.1
-urllib3==1.22
+urllib3==1.24.2
